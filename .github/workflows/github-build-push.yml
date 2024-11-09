@@ -1,15 +1,15 @@
-name: Build and Push Container
+name: Build, Push, and Deploy to Coolify
 
 on:
   push:
     branches:
       - main
-    # paths:
-    #   - 'Dockerfile'
   workflow_dispatch:    
+
 jobs:
   build-and-push:
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,4 +36,11 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}        
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+      - name: Trigger Coolify Deployment
+        env:
+          COOLIFY_WEBHOOK: ${{ secrets.COOLIFY_WEBHOOK }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: |
+          curl --request GET "${{ env.COOLIFY_WEBHOOK }}" --header "Authorization: Bearer ${{ env.COOLIFY_TOKEN }}"
